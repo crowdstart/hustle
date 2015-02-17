@@ -34,7 +34,44 @@ hustle =
   # animation executes a series of animations
   animate: (el, animations...) ->
     $el = $ el
-    addClass $el, ANIMATE_CSS_CLASSES.animated
+    # non sets and then will override previous calls to the same fn
+    lastUsing = null
+    lastDuration = null
+    lastDelay = null
+    lastLoop = null
+    sets = []
+    thens = null
+    for animation in animations
+      # only recognize functions
+      if isFunc animation
+        switch animation.HustleFn
+          when hustle.set
+            sets.push animation
+          when hustle.using
+            lastUsing = animation
+          when hustle.duration
+            lastDuration = animation
+          when hustle.delay
+            lastDuration = animation
+          when hustle.loop
+            lastLoop = animation
+          when hustle.then
+            if thens?
+              oldThens = thens
+              thens = ($el) ->
+                animation $el
+                oldThens $el
+            else
+              thens = animation
+
+    lastUsing $el if lastUsing?
+    lastDuration $el if lastDuration?
+    lastDelay $el if lastDelay?
+    lastLoop $el if lastLoop?
+
+    addClass $el, ANIMATE_CSS_CLASSES.animated thens
+
+    set $el for set in sets
 
   # set takes in a jquery object and calls css with the parameters
   set: (args...) ->
@@ -86,6 +123,15 @@ hustle =
       fn = ($el) ->
         addCSS $el, 'animation-iteration-count', times
     fn.HustleFn = hustle.loop
+    fn
+
+  # then executes an arbitrary fn after the current animation and passes it the element
+  then: (someFn) ->
+    # wrap someFn with a function so we can safely set fn.HustleFn
+    fn = ($el) ->
+      someFn $el
+
+    fn.HustleFn = hustle.then
     fn
 
 module.exports = hustle
