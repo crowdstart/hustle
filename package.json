@@ -1,0 +1,31 @@
+{
+  "name": "hustle",
+  "version": "1.0.0",
+  "description": "Coffeescript Animation Library built on Animate.css",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/crowdstart/hustle.git"
+  },
+  "keywords": [
+    "animate",
+    "css",
+    "animate.css",
+    "animation",
+    "coffeescript"
+  ],
+  "author": "Crowdstart",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/crowdstart/hustle/issues"
+  },
+  "homepage": "https://github.com/crowdstart/hustle",
+  "dependencies": {
+    "bebop": "^1.2.2",
+    "coffee-script": "^1.9.0",
+    "jquery": "^2.1.3"
+  }
+}
