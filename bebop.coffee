@@ -1,39 +1,20 @@
-exec = require('executive').interactive
+fs   = require 'fs'
+path = require 'path'
 
-# Compile style guide into docs/
-kss = (done = ->) ->
-  bin  = 'node_modules/.bin/kss-node'
-  args = '--template=guide/template --source=src --source=guide --destination=docs --mask=*.styl'
-  exec "#{bin} #{args}", -> stylus done
+requisite = 'node_modules/.bin/requisite -s -g'
 
-# Compile stylus from guide into docs/
-stylus = (src = 'guide/template/public', done = ->) ->
-  if typeof src == 'function'
-    [done, src] = [src, 'guide/template/public']
-
-  bin  = 'node_modules/.bin/stylus'
-  args = '-u autoprefixer-stylus --sourcemap --sourcemap-inline'
-  exec "#{bin} #{args} #{src} -o docs/public", done
+files =
+  js:
+    in:  'src/hustle.coffee'
+    out: 'lib/hustle.js'
 
 module.exports =
-  pre:       kss
-  staticDir: 'docs/'
+  cwd: process.cwd()
 
-  include: [
-    /docs/
-    /guide/
-    /src/
+  exclude: [
+    /node_modules/
   ]
 
   compilers:
-    html: (src) ->
-      kss() if /^guide/.test src
-
-    md:   (src) ->
-      kss() if /^guide/.test src
-
-    styl: (src) ->
-      if /^guide/.test src
-        stylus src
-      if /^src/.test src
-        stylus 'guide/template/public/quill.styl'
+    coffee: (src) ->
+      return "#{requisite} #{files.js.in} -o #{files.js.out}"
