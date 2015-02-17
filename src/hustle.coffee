@@ -1,0 +1,3 @@
+hustle = {}
+
+module.exports = hustle
