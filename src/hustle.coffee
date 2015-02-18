@@ -1,4 +1,4 @@
-# Constants corresponding to animate css classes
+# Constants corresponding to animate css classes for compatibility
 ANIMATE_CSS_CLASSES =
   animated: "animated"
   loopForever: "infinite"
@@ -30,10 +30,21 @@ addCSS = ($el, field, value, next) ->
     ()-> $el.css field, oldValue
     next $el if isFunc next?
 
+# Add animation to the list of animations kept by each hustle created function
+saveAnimations = (fn, fns) ->
+  if isFunc fn
+    if fns? && fns.HustleAnimations && isFunc fns.HustleAnimations.push
+      fn.HustleAnimations = fns.HustleAnimations
+    else
+      fn.HustleAnimations = []
+
+  fn.HustleAnimations.push fn
+
 hustle =
   # animation executes a series of animations
-  animate: (el, animations...) ->
+  animate: (el, fns) ->
     $el = $ el
+    animations = fns.HustleAnimations
     # non sets and then will override previous calls to the same fn
     lastUsing = null
     lastDuration = null
@@ -74,22 +85,24 @@ hustle =
     set $el for set in sets
 
   # set takes in a jquery object and calls css with the parameters
-  set: (args...) ->
+  set: (args..., fns) ->
     fn = ($el)->
       $el.css args...
     fn.HustleFn = hustle.set
+    saveAnimations fn, fns
     fn
 
-  # using specifies the Animate.CSS class to use, only the last one before a then is applied.
+  # using specifies the Animate.CSS, Bounce.js, or other easing class to use, only the last one before a then is applied.
   # using relies on the user to supply valid class names from Animate.css
-  using: (animationName) ->
+  using: (animationName, fns) ->
     fn = ($el)->
       addClass $el, animationName
     fn.HustleFn = hustle.using
+    saveAnimations fn, fns
     fn
 
   # for specifies duration of animation
-  for: (duration) ->
+  for: (durationi, fns) ->
     if IS_SAFARI
       fn = ($el) ->
         addCSS $el, '-webkit-animation-duration', duration
@@ -97,10 +110,11 @@ hustle =
       fn = ($el) ->
         addCSS $el, 'animation-duration', duration
     fn.HustleFn = hustle.for
+    saveAnimations fn, fns
     fn
 
   # delay specifies the amount of time to wait until animation plays
-  delay: (duration) ->
+  delay: (duration, fns) ->
     if IS_SAFARI
       fn = ($el) ->
         addCSS $el, '-webkit-animation-delay', duration
@@ -108,11 +122,12 @@ hustle =
       fn = ($el) ->
         addCSS $el, 'animation-delay', duration
     fn.HustleFn = hustle.delay
+    saveAnimations fn, fns
     fn
 
   # loop specifies the number of times the animation loops, omitting the argument results in infinite animation
   # loop() causes 'then' calls that are part of the same animation block to fail
-  loop: (times) ->
+  loop: (times, fns) ->
     if times?
       fn = ($el) ->
         addClass el, ANIMATE_CSS_CLASSES.loopForever
@@ -123,6 +138,7 @@ hustle =
       fn = ($el) ->
         addCSS $el, 'animation-iteration-count', times
     fn.HustleFn = hustle.loop
+    saveAnimations fn, fns
     fn
 
   # then executes an arbitrary fn after the current animation and passes it the element
@@ -132,6 +148,7 @@ hustle =
       someFn $el
 
     fn.HustleFn = hustle.then
+    saveAnimations fn
     fn
 
 module.exports = hustle
